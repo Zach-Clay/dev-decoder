@@ -13,6 +13,8 @@ The idea it's built on is that most software jargon sounds impenetrable and mean
 something mundane. So the front of a card shows the term in the font engineers actually
 write code in, and the back answers in plain English. The flip is the translation.
 
+**Live at [nice-island-02eb7fd0f.3.azurestaticapps.net](https://nice-island-02eb7fd0f.3.azurestaticapps.net).**
+
 Every card has four parts:
 
 | | |
@@ -62,108 +64,72 @@ the only honest way to check how it feels.
 
 ---
 
-# Putting it on her phone
+# Getting it onto a phone
 
-There's no App Store step here. iOS lets any website with the right metadata be added to
-the home screen as a standalone app, and this one already declares all of it
-(`manifest.webmanifest`, `apple-touch-icon`, `apple-mobile-web-app-capable`). You just
-need it on the public internet first.
+It is already on the internet at **[nice-island-02eb7fd0f.3.azurestaticapps.net](https://nice-island-02eb7fd0f.3.azurestaticapps.net)** — just send
+the link. There is no App Store step: iOS turns any site carrying the right metadata into
+a home-screen app, and this one declares all of it (`manifest.webmanifest`,
+`apple-touch-icon`, `apple-mobile-web-app-capable`).
 
-## 1. Build it
+**In Safari** — this does not work from Chrome, or from a link preview inside Instagram
+or Messages:
 
-```bash
-npm --prefix web-frontend run build
-```
-
-That writes a folder of static files to `web-frontend/dist/`. No backend, no database —
-it's HTML, CSS, JS, and a few icons.
-
-## 2. Deploy it to Azure Static Web Apps
-
-The repo is already configured for it. In the portal, create a **Static Web App**,
-connect it to `Zach-Clay/dev-decoder`, and use these build details:
-
-| Field | Value |
-|---|---|
-| Build preset | Custom (or React — it only prefills the fields below) |
-| App location | `/web-frontend` |
-| Api location | *leave blank* — there is no backend |
-| Output location | `dist` |
-
-> **Output location is relative to app location**, so it is `dist`, not
-> `web-frontend/dist`. Getting this wrong is the usual reason a first deploy
-> succeeds but serves nothing.
-
-Azure commits a GitHub Actions workflow to the repo when you finish the wizard
-(`.github/workflows/azure-static-web-apps-*.yml`) and adds the deployment token as a
-repo secret. Every push to `main` redeploys from then on. Free tier gives you HTTPS, two
-custom domains, and 100 GB/month — far more than one person studying flashcards will use.
-
-### What is already handled for you
-
-[`web-frontend/public/staticwebapp.config.json`](web-frontend/public/staticwebapp.config.json)
-ships in the build output and does four things:
-
-- **SPA fallback.** This app uses `BrowserRouter`, so the server has to return
-  `index.html` for any path and let React Router sort it out. Without it `/browse` and
-  `/study/ai` are hard 404s — the home-screen icon opens `/` so it would launch fine, but
-  the first pull-to-refresh on any other screen would kill the app.
-- **MIME types**, so `manifest.webmanifest` is served as `application/manifest+json`.
-  iOS is picky about this, and a wrong type is a quiet way to break Add to Home Screen.
-- **Cache headers.** Vite content-hashes everything in `/assets`, so those are immutable
-  for a year, while `index.html` is `no-cache` — that combination is what makes a
-  redeploy actually reach her phone instead of sitting behind a stale cache.
-- **`X-Content-Type-Options`** and a referrer policy.
-
-Verified against Azure's own emulator (`npx @azure/static-web-apps-cli start dist`)
-rather than assumed:
-
-```
-/              -> 200  <title>Dev Decoder</title>
-/browse        -> 200  <title>Dev Decoder</title>
-/study/ai      -> 200  <title>Dev Decoder</title>
-/manifest.webmanifest  -> 200  application/manifest+json
-/assets/index-*.js     -> cache-control: public, max-age=31536000, immutable
-/index.html            -> cache-control: no-cache
-```
-
-You can run that yourself any time after a build, from `web-frontend/`.
-
-`package.json` also pins `engines.node` to `>=20.19`, because Vite 7 needs it and
-Azure's Oryx builder reads that field to pick a Node version.
-
-## 3. Add it to her home screen
-
-On her iPhone, **in Safari** — this doesn't work from Chrome or from a link preview
-inside Instagram or Messages:
-
-1. Open the URL you deployed to.
-2. Tap the **Share** button (the square with the arrow, in the bottom bar).
+1. Open the link.
+2. Tap **Share** (the square with the arrow, in the bottom bar).
 3. Scroll down and tap **Add to Home Screen**.
-4. The name defaults to **Dev Decoder**. She can rename it here.
+4. The name defaults to **Dev Decoder**, and can be changed here.
 5. Tap **Add**.
 
-The icon lands on her home screen, and opening it launches the app full-screen with no
-address bar, no tabs, and no Safari toolbar. It gets its own entry in the app switcher.
-It looks and behaves like something she installed.
+The icon lands on the home screen, and opening it launches full-screen with no address
+bar, no tabs, and no Safari toolbar. It gets its own card in the app switcher. It looks
+and behaves like something that was installed.
 
-**Have her start from the icon after that.** iOS can treat a home-screen app as a
-separate browser from Safari, so studying she did in Safari beforehand may not carry over
-into the installed app — and vice versa.
+**Open it from the icon after that.** iOS can treat a home-screen app as a separate
+browser from Safari, so studying done in Safari beforehand may not carry across into the
+installed app, or the other way round.
 
-## What this does and doesn't get you
+## What that does and does not get you
 
 **It does:** a real icon, a full-screen app with no browser chrome, its own app-switcher
-card, light and dark mode following her phone, and progress that persists between
-sessions.
+card, light and dark following the phone, and progress that persists between sessions.
 
-**It doesn't:** work offline. There's no service worker yet, so it needs a connection to
-load. Once it's open, studying doesn't hit the network again — but a cold start on
-airplane mode won't work. Worth adding if she wants to study on a flight.
+**It does not:** work offline. There is no service worker yet, so it needs a connection to
+load. Once open, studying never touches the network again — but a cold start on airplane
+mode will not work. Worth adding if she wants to study on a flight.
 
-**Also worth knowing:** her progress lives only on that phone, in that app. Clearing
-website data, or switching to a new phone, starts her over. There's no account to sync
-it, by design.
+**Also worth knowing:** progress lives only on that phone, in that app. Clearing website
+data, or moving to a new phone, starts it over. There is no account to sync it, by design.
+
+---
+
+## How it is hosted
+
+Azure Static Web Apps, free tier, deployed from `main`. Every push runs lint, a
+typechecked build, and the unit tests, and only deploys if all three pass — the workflow
+is in [`.github/workflows/`](.github/workflows).
+
+[`web-frontend/public/staticwebapp.config.json`](web-frontend/public/staticwebapp.config.json)
+is copied into the build output and covers what a React SPA needs from a static host:
+
+- **SPA fallback.** This app uses `BrowserRouter`, so the server has to return
+  `index.html` for any path. Without it `/browse` and `/study/ai` are hard 404s — the
+  home-screen icon opens `/` so it would still launch, but the first pull-to-refresh on
+  any other screen would kill the app.
+- **MIME types**, so `manifest.webmanifest` is served as `application/manifest+json`.
+  iOS is picky here, and the wrong type is a quiet way to break Add to Home Screen.
+- **Cache headers.** Vite content-hashes everything under `/assets`, so those are
+  immutable for a year, while `index.html` is `no-cache` — that pairing is what makes a
+  redeploy actually reach the phone instead of sitting behind a stale cache.
+- **`X-Content-Type-Options`** and a referrer policy.
+
+That config can be exercised locally against Azure's own emulator:
+
+```bash
+cd web-frontend && npm run build
+npx @azure/static-web-apps-cli start dist   # http://localhost:4280
+```
+
+Deep links like `/study/ai` should come back as the app rather than a 404.
 
 ---
 

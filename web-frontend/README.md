@@ -81,5 +81,7 @@ npm run build
 npx @azure/static-web-apps-cli start dist   # http://localhost:4280
 ```
 
-Deep links like `/study/ai` should return the app rather than a 404. Deploy settings and
-the portal walkthrough are in the [root README](../README.md).
+Deep links like `/study/ai` should return the app rather than a 404.
+
+Pushes to `main` deploy automatically once lint, the build, and the tests pass. The
+live site and what the hosting config covers are in the [root README](../README.md).
