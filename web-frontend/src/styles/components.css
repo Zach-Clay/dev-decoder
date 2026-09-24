@@ -1,0 +1,98 @@
+/* ------------------------------
+  REUSABLE COMPONENT CLASSES
+---------------------------------*/
+@layer components {
+  /* An iOS screen: fixed-height column with its own scroll region, so the
+     header and tab bar stay put while content moves under them. */
+  /* A definite height, not a minimum: percentage heights inside (the card
+     filling its region) need something real to resolve against, and an app
+     should not grow past the viewport anyway. */
+  .screen {
+    @apply flex h-[100dvh] flex-col;
+  }
+
+  .screen-scroll {
+    @apply min-h-0 flex-1 overflow-y-auto overscroll-contain px-4;
+    -webkit-overflow-scrolling: touch;
+    /* iOS overlays its scrollbar; a desktop browser's permanent one gives the
+       whole thing away as a web page. */
+    scrollbar-width: none;
+  }
+
+  .screen-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Frosted bars, top and bottom. */
+  .bar {
+    background-color: var(--chrome);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+  }
+
+  /* Grouped inset list, the iOS Settings pattern. */
+  .inset-list {
+    @apply overflow-hidden rounded-2xl;
+    background-color: var(--color-surface);
+    box-shadow: theme('boxShadow.soft');
+  }
+
+  .inset-row {
+    @apply flex w-full items-center gap-3 px-4 py-3 text-left transition-colors;
+  }
+
+  .inset-row + .inset-row {
+    border-top: 1px solid var(--color-rule);
+  }
+
+  .inset-row:active {
+    background-color: var(--color-surface-sunk);
+  }
+
+  /* Small mono label used for section headings and deck names. */
+  .eyebrow {
+    @apply font-mono text-[11px] font-medium tracking-[0.14em] uppercase;
+    color: var(--color-text-faint);
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-[15px] font-semibold transition-transform duration-150 active:scale-[0.97];
+  }
+
+  .btn-primary {
+    background-color: var(--color-accent);
+    color: #ffffff;
+  }
+
+  .btn-quiet {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: theme('boxShadow.soft');
+  }
+
+  /* The signature: a marker stroke behind a phrase. Slightly irregular ends and
+     a blend mode, so it reads as ink laid over the words rather than a box. */
+  .highlight {
+    @apply relative inline;
+    background-image: linear-gradient(
+      100deg,
+      transparent 0.2%,
+      var(--color-highlight) 1.6%,
+      var(--color-highlight) 98.2%,
+      transparent 99.6%
+    );
+    background-repeat: no-repeat;
+    background-size: 0% 88%;
+    background-position: 0 62%;
+    mix-blend-mode: var(--highlight-blend);
+    color: var(--highlight-ink);
+    padding: 0 0.15em;
+    margin: 0 -0.15em;
+    border-radius: 2px;
+    transition: background-size 620ms cubic-bezier(0.22, 1, 0.36, 1) 160ms;
+  }
+
+  .highlight-on {
+    background-size: 100% 88%;
+  }
+}
