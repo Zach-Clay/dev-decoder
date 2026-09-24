@@ -78,54 +78,59 @@ npm --prefix web-frontend run build
 That writes a folder of static files to `web-frontend/dist/`. No backend, no database —
 it's HTML, CSS, JS, and a few icons.
 
-## 2. Deploy it
+## 2. Deploy it to Azure Static Web Apps
 
-Any static host works. Vercel, Netlify, and Cloudflare Pages all have free tiers, deploy
-straight from the GitHub repo, redeploy on every push, and give you HTTPS automatically.
+The repo is already configured for it. In the portal, create a **Static Web App**,
+connect it to `Zach-Clay/dev-decoder`, and use these build details:
 
-Whichever you pick, the settings are the same:
-
-| Setting | Value |
+| Field | Value |
 |---|---|
-| Root / base directory | `web-frontend` |
-| Build command | `npm run build` |
-| Output directory | `dist` |
+| Build preset | Custom (or React — it only prefills the fields below) |
+| App location | `/web-frontend` |
+| Api location | *leave blank* — there is no backend |
+| Output location | `dist` |
 
-### The one thing you have to configure
+> **Output location is relative to app location**, so it is `dist`, not
+> `web-frontend/dist`. Getting this wrong is the usual reason a first deploy
+> succeeds but serves nothing.
 
-This is a single-page app using `BrowserRouter`, so the server has to hand `index.html`
-back for *any* path and let React Router sort it out. Without that, `/browse` and
-`/study/ai` are 404s — I checked against a plain static server:
+Azure commits a GitHub Actions workflow to the repo when you finish the wizard
+(`.github/workflows/azure-static-web-apps-*.yml`) and adds the deployment token as a
+repo secret. Every push to `main` redeploys from then on. Free tier gives you HTTPS, two
+custom domains, and 100 GB/month — far more than one person studying flashcards will use.
+
+### What is already handled for you
+
+[`web-frontend/public/staticwebapp.config.json`](web-frontend/public/staticwebapp.config.json)
+ships in the build output and does four things:
+
+- **SPA fallback.** This app uses `BrowserRouter`, so the server has to return
+  `index.html` for any path and let React Router sort it out. Without it `/browse` and
+  `/study/ai` are hard 404s — the home-screen icon opens `/` so it would launch fine, but
+  the first pull-to-refresh on any other screen would kill the app.
+- **MIME types**, so `manifest.webmanifest` is served as `application/manifest+json`.
+  iOS is picky about this, and a wrong type is a quiet way to break Add to Home Screen.
+- **Cache headers.** Vite content-hashes everything in `/assets`, so those are immutable
+  for a year, while `index.html` is `no-cache` — that combination is what makes a
+  redeploy actually reach her phone instead of sitting behind a stale cache.
+- **`X-Content-Type-Options`** and a referrer policy.
+
+Verified against Azure's own emulator (`npx @azure/static-web-apps-cli start dist`)
+rather than assumed:
 
 ```
-/            -> 200
-/study/ai    -> 404
-/browse      -> 404
+/              -> 200  <title>Dev Decoder</title>
+/browse        -> 200  <title>Dev Decoder</title>
+/study/ai      -> 200  <title>Dev Decoder</title>
+/manifest.webmanifest  -> 200  application/manifest+json
+/assets/index-*.js     -> cache-control: public, max-age=31536000, immutable
+/index.html            -> cache-control: no-cache
 ```
 
-The home-screen icon itself opens `/`, so it'd survive — but the first time she pulls to
-refresh on any other screen, the app dies. Add the fallback.
+You can run that yourself any time after a build, from `web-frontend/`.
 
-**Netlify or Cloudflare Pages** — create `web-frontend/public/_redirects` (anything in
-`public/` gets copied into `dist/` at build time):
-
-```
-/*    /index.html   200
-```
-
-**Vercel** — create `vercel.json` at the repo root:
-
-```json
-{
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
-}
-```
-
-> **A note on GitHub Pages:** it works, but a project site serves from
-> `yourname.github.io/dev-decoder/`, and this app assumes it lives at the
-> root — `start_url`, `scope`, and the icon paths in `manifest.webmanifest` are all
-> absolute. You'd need to set `base` in `vite.config.ts` and make those paths relative.
-> A host that serves at the root is less work.
+`package.json` also pins `engines.node` to `>=20.19`, because Vite 7 needs it and
+Azure's Oryx builder reads that field to pick a Node version.
 
 ## 3. Add it to her home screen
 

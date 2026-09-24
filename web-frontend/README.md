@@ -56,9 +56,30 @@ highlighter color) and its file added to `ALL_CARDS` in `src/lib/cards/index.ts`
   scroll regions, a frosted tab bar, iOS large titles that collapse on scroll,
   safe-area insets, no visible scrollbars, and no page-level rubber-banding.
 
+- **No third-party requests.** All three fonts are bundled via `@fontsource`, so
+  nothing is fetched from someone else's CDN at runtime and there is no flash of
+  fallback type if that CDN is slow.
+
 ## On a phone
 
 `index.html` declares the PWA bits (`manifest.webmanifest`, `apple-touch-icon`,
 `apple-mobile-web-app-capable`), so **Share → Add to Home Screen** in Safari
 gives a real icon and a standalone window with no browser chrome. `InstallHint`
 says so once, on iOS only, and never again after it is dismissed.
+
+## Hosting
+
+`public/staticwebapp.config.json` is copied into `dist/` at build time and configures
+Azure Static Web Apps: SPA fallback for `BrowserRouter`, the `application/manifest+json`
+MIME type iOS wants, and cache headers (immutable for content-hashed `/assets`,
+`no-cache` for `index.html`).
+
+To check it before pushing, build and run Azure's emulator against the output:
+
+```bash
+npm run build
+npx @azure/static-web-apps-cli start dist   # http://localhost:4280
+```
+
+Deep links like `/study/ai` should return the app rather than a 404. Deploy settings and
+the portal walkthrough are in the [root README](../README.md).
