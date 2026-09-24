@@ -1,4 +1,4 @@
-# Decoder
+# Dev Decoder
 
 React + TypeScript + Vite, styled with Tailwind v4 and tested with Vitest.
 

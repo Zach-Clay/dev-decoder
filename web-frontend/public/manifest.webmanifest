@@ -1,6 +1,6 @@
 {
-  "name": "Decoder",
-  "short_name": "Decoder",
+  "name": "Dev Decoder",
+  "short_name": "Dev Decoder",
   "description": "Flashcards for the software engineering terms your boyfriend keeps saying.",
   "start_url": "/",
   "scope": "/",

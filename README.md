@@ -5,7 +5,7 @@ Are you a software engineer with a girlfriend who has no clue what you're talkin
 
 ## What this is
 
-**Decoder** — a flashcard app for the 162 words engineers say without noticing. It's a
+**Dev Decoder** — a flashcard app for the 162 words engineers say without noticing. It's a
 React site, but it's built for exactly one screen: an iPhone, added to the home screen,
 where it opens with an icon and no browser chrome around it.
 
@@ -122,7 +122,7 @@ refresh on any other screen, the app dies. Add the fallback.
 ```
 
 > **A note on GitHub Pages:** it works, but a project site serves from
-> `yourname.github.io/se-girlfriend-knowledge-base/`, and this app assumes it lives at the
+> `yourname.github.io/dev-decoder/`, and this app assumes it lives at the
 > root — `start_url`, `scope`, and the icon paths in `manifest.webmanifest` are all
 > absolute. You'd need to set `base` in `vite.config.ts` and make those paths relative.
 > A host that serves at the root is less work.
@@ -135,7 +135,7 @@ inside Instagram or Messages:
 1. Open the URL you deployed to.
 2. Tap the **Share** button (the square with the arrow, in the bottom bar).
 3. Scroll down and tap **Add to Home Screen**.
-4. The name defaults to **Decoder**. She can rename it here.
+4. The name defaults to **Dev Decoder**. She can rename it here.
 5. Tap **Add**.
 
 The icon lands on her home screen, and opening it launches the app full-screen with no
